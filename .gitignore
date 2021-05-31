@@ -1,0 +1,6 @@
+# Ignore files
+RL_gridworld.ipynb
+
+# Catche files
+.ipynb_checkpoints
+__pycache__
