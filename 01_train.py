@@ -14,16 +14,22 @@ def get_argument():
                         default=500, type=int)
     parser.add_argument('--discount_value', help='I don\'t know',
                         default=0.9, type=float)
+    parser.add_argument('--resize', help='Image resize ratio',
+                        default=1, type=int)
     parser.add_argument('--reward_points', help='Set rewards',
-                        default=[(240, 230), (250, 350), (125, 200), (100, 400)], type=list)
+                        default=(120, 115, 125, 175, 63, 100, 50, 200), type=int, nargs='+')
     return parser.parse_args()
 
 args = get_argument()
 
 # Set reward
-position = args.reward_points
+reward_points = args.reward_points
+position = []
+for point in range(0, len(reward_points), 2):
+    position.append((reward_points[point], reward_points[point+1]))
 
 room = cv2.imread(args.map, cv2.IMREAD_GRAYSCALE)
+room = cv2.resize(room, (room.shape[1]//args.resize, room.shape[0]//args.resize))
 
 grid = np.zeros((room.shape[0], room.shape[1]))
 grid[room >= 210] = 255  # Filter out black & gray color
@@ -59,12 +65,13 @@ for num in tqdm(range(args.epochs)): #number of times we will go through the who
                     if direc != 0:
                         if direc > value:
                             value = direc
-            grid[x][y] = value - 0.005
+            grid[x][y] = value - 0.005 * args.resize
 
 # Save heatmap image
 plt.imshow(grid)
 plt.title('Heatmap')
 plt.colorbar()
+plt.show()
 plt.savefig('heatmap.jpg', dpi=300)
 
 # Save heatmap parameters

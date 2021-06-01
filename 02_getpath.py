@@ -12,15 +12,19 @@ def get_argument():
                         default='room338.bmp')
     parser.add_argument('--heatmap', help='Path of heatmap',
                         default='heatmap.csv')
+    parser.add_argument('--resize', help='Image resize ratio',
+                        default=1, type=int)
     parser.add_argument('--start', help='Starting point',
-                        default=(150, 450))
+                        default=(75, 225), type=int, nargs='+')
     return parser.parse_args()
 
 args = get_argument()
 
 room = cv2.imread(args.map, cv2.IMREAD_GRAYSCALE)
+room = cv2.resize(room, (room.shape[1]//args.resize, room.shape[0]//args.resize))
 grid = pd.read_csv('heatmap.csv').to_numpy()
 color_map = cv2.imread(args.map)
+color_map = cv2.resize(color_map, (color_map.shape[1]//args.resize, color_map.shape[0]//args.resize))
 color_map = cv2.cvtColor(color_map, cv2.COLOR_BGR2RGB)
 
 # Define color parameters
@@ -41,14 +45,14 @@ def move_next(grid, x, y):
         max_value = (grid[x+1][y], x+1, y) if grid[x+1][y] > max_value[0] else max_value
     
     if max_value[0] > grid[x][y]:
-        cv2.circle(color_map, (max_value[2], max_value[1]), 3, yellow, -1)
+        cv2.circle(color_map, (max_value[2], max_value[1]), 2, yellow, -1)
         return True, max_value[1], max_value[2]
     else:
-        cv2.circle(color_map, (y, x), 10, red, -1)
+        cv2.circle(color_map, (y, x), 5, red, -1)
         return False, x, y
 
 steps = (True, args.start[0], args.start[1])  # Move_next?, x, y
-cv2.circle(color_map, (args.start[1], args.start[0]), 10, blue, -1)
+cv2.circle(color_map, (args.start[1], args.start[0]), 5, blue, -1)
 while steps[0]:
     steps = move_next(grid, steps[1], steps[2])
     print(steps)
